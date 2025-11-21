@@ -8,6 +8,15 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:5432/eventy_tickets
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      group-id: tickets-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*" # Accepte les JSON de n'importe quel package Java
   jpa:
     hibernate:
       ddl-auto: update

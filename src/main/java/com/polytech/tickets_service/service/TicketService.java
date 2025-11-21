@@ -9,7 +9,11 @@ import com.polytech.tickets_service.repository.TicketTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.polytech.tickets_service.client.EventServiceClient; // <--- Import
+import com.polytech.tickets_service.dto.EventResponseDto;      // <--- Import
+import feign.FeignException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,31 +23,47 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketTypeRepository ticketTypeRepository;
+    private final EventServiceClient eventServiceClient;
 
     /**
      * Crée un nouveau ticket pour la vente.
      */
     @Transactional
     public Ticket createTicket(TicketRequestDto request, String vendorId) {
-        // 1. Vérifier ou récupérer le type de ticket
-        TicketType type = ticketTypeRepository.findById(request.getTicketTypeId())
-                .orElseThrow(() -> new RuntimeException("Type de ticket introuvable"));
+        // 1. Vérifier l'existence et le statut de l'événement via le microservice Events
+        EventResponseDto event;
+        try {
+            event = eventServiceClient.getEventById(request.getEventId());
+        } catch (FeignException.NotFound e) {
+            throw new IllegalArgumentException("Event not found with ID: " + request.getEventId());
+        }
 
-        // 2. Construire l'objet Ticket
+        // Vérification optionnelle du statut
+        if (!"ACTIVE".equalsIgnoreCase(event.getStatus())) {
+            throw new IllegalStateException("Cannot create ticket for an event that is not ACTIVE (Current status: " + event.getStatus() + ")");
+        }
+
+        // 2. Récupérer le type de ticket (interne au service Ticket)
+        TicketType ticketType = ticketTypeRepository.findById(request.getTicketTypeId())
+                .orElseThrow(() -> new IllegalArgumentException("Ticket Type not found"));
+
+        // 3. Création du ticket
         Ticket ticket = Ticket.builder()
                 .eventId(request.getEventId())
                 .vendorId(UUID.fromString(vendorId))
-                .ticketType(type)
+                .ticketType(ticketType)
                 .originalPrice(request.getOriginalPrice())
                 .salePrice(request.getSalePrice())
                 .section(request.getSection())
                 .row(request.getRow())
                 .seat(request.getSeat())
+                .saleDate(LocalDate.now())
                 .status(TicketStatus.AVAILABLE)
-                // Génération simple de codes (à remplacer par une logique métier plus complexe si besoin)
-                .barcode(UUID.randomUUID().toString()) 
-                .qrCode("QR-" + UUID.randomUUID().toString())
                 .build();
+
+        // Génération de codes factices pour le MVP
+        ticket.setBarcode(UUID.randomUUID().toString());
+        ticket.setQrCode("QR-" + ticket.getId());
 
         return ticketRepository.save(ticket);
     }
