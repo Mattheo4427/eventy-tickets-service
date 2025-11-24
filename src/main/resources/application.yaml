@@ -19,9 +19,12 @@ spring:
         spring.json.trusted.packages: "*" # Accepte les JSON de n'importe quel package Java
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
 
 # Sécurité Keycloak
   security:
