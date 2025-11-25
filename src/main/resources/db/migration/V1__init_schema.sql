@@ -20,13 +20,15 @@ CREATE TABLE ticket (
     sale_price DOUBLE PRECISION,
     
     -- Localisation (Section/Rang/Siège)
-    section INTEGER,
+    section VARCHAR(255),
     "row" INTEGER, -- "row" est un mot réservé en SQL, il faut souvent des guillemets
     seat VARCHAR(255),
     
     -- Codes et Statut
     barcode VARCHAR(255),
     qr_code VARCHAR(255),
+
+    sale_date TIMESTAMP,
     
     -- Statut basé sur l'Enum TicketStatus (AVAILABLE, RESERVED, SOLD, CANCELED)
     status VARCHAR(50) NOT NULL CHECK (status IN ('AVAILABLE', 'RESERVED', 'SOLD', 'CANCELED')),

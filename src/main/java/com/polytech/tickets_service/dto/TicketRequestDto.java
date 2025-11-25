@@ -9,7 +9,7 @@ public class TicketRequestDto {
     private UUID ticketTypeId;
     private Double originalPrice;
     private Double salePrice;
-    private Integer section;
+    private String section;
     private Integer row;
     private String seat;
 }

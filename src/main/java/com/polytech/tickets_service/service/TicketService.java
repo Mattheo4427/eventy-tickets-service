@@ -1,6 +1,7 @@
 package com.polytech.tickets_service.service;
 
 import com.polytech.tickets_service.dto.TicketRequestDto;
+import com.polytech.tickets_service.dto.TicketResponseDto;
 import com.polytech.tickets_service.model.Ticket;
 import com.polytech.tickets_service.model.TicketType;
 import com.polytech.tickets_service.model.enums.TicketStatus;
@@ -16,6 +17,7 @@ import feign.FeignException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,7 +59,7 @@ public class TicketService {
                 .section(request.getSection())
                 .row(request.getRow())
                 .seat(request.getSeat())
-                .saleDate(LocalDate.now())
+                .saleDate(LocalDate.now().atStartOfDay())
                 .status(TicketStatus.AVAILABLE)
                 .build();
 
@@ -91,5 +93,29 @@ public class TicketService {
     
     public List<Ticket> getAvailableTicketsByEvent(UUID eventId) {
         return ticketRepository.findByEventIdAndStatus(eventId, TicketStatus.AVAILABLE);
+    }
+
+    public List<TicketResponseDto> getAllTickets() {
+        return ticketRepository.findAll().stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    private TicketResponseDto mapToResponseDto(Ticket ticket) {
+        return TicketResponseDto.builder()
+                .id(ticket.getId())
+                .eventId(ticket.getEventId())
+                .vendorId(ticket.getVendorId())
+                .sellerName("Vendeur " + ticket.getVendorId().toString().substring(0, 5)) // Placeholder, le front fera la jointure ou on appellera UserClient plus tard
+                .typeLabel(ticket.getTicketType().getLabel())
+                .originalPrice(ticket.getOriginalPrice())
+                .salePrice(ticket.getSalePrice())
+                .section(ticket.getSection())
+                .row(ticket.getRow())
+                .seat(ticket.getSeat())
+                .status(ticket.getStatus())
+                .barcode(ticket.getBarcode())
+                .qrCode(ticket.getQrCode())
+                .build();
     }
 }

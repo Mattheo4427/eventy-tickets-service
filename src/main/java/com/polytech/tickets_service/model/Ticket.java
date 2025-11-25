@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -40,7 +41,7 @@ public class Ticket {
     @Column(name = "sale_price")
     private Double salePrice; // Peut être différent si revente
 
-    private Integer section;
+    private String section;
     private Integer row;
     
     // Utilisation de String au lieu de char pour plus de flexibilité (ex: "12A")
@@ -54,9 +55,14 @@ public class Ticket {
 
     @CreationTimestamp
     @Column(name = "sale_date")
-    private LocalDate saleDate;
+    private LocalDateTime saleDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TicketStatus status = TicketStatus.AVAILABLE;
+
+    // --- AJOUT ---
+    @CreationTimestamp // Génère la date automatiquement côté Java/Hibernate si besoin
+    @Column(name = "creation_date", updatable = false)
+    private LocalDateTime creationDate;
 }

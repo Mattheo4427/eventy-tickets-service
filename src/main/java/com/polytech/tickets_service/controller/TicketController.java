@@ -1,6 +1,7 @@
 package com.polytech.tickets_service.controller;
 
 import com.polytech.tickets_service.dto.TicketRequestDto;
+import com.polytech.tickets_service.dto.TicketResponseDto;
 import com.polytech.tickets_service.model.Ticket;
 import com.polytech.tickets_service.service.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -53,5 +54,11 @@ public class TicketController {
     public ResponseEntity<Void> buyTicket(@PathVariable UUID id) {
         ticketService.buyTicket(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<TicketResponseDto>> getAllTickets() {
+        // TODO: Ajouter @PreAuthorize("hasRole('ADMIN')") quand la sécurité sera active sur ce service
+        return ResponseEntity.ok(ticketService.getAllTickets());
     }
 }
