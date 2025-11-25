@@ -45,6 +45,7 @@ public class SecurityConfig {
                         // Routes Admin (si vous voulez sécuriser spécifiquement)
                         .requestMatchers("/tickets/admin/**").hasRole("ADMIN")
 
+                        .requestMatchers("/tickets/**").authenticated()
                         // Toutes les autres requêtes nécessitent une authentification
                         .anyRequest().authenticated()
                 )
