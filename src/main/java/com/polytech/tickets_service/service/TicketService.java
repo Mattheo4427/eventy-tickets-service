@@ -16,6 +16,7 @@ import feign.FeignException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -95,6 +96,10 @@ public class TicketService {
         return ticketRepository.findByEventIdAndStatus(eventId, TicketStatus.AVAILABLE);
     }
 
+    public List<TicketType> getTicketTypes(){
+        return ticketTypeRepository.findAll();
+    }
+
     public List<TicketResponseDto> getAllTickets() {
         return ticketRepository.findAll().stream()
                 .map(this::mapToResponseDto)
@@ -117,5 +122,9 @@ public class TicketService {
                 .barcode(ticket.getBarcode())
                 .qrCode(ticket.getQrCode())
                 .build();
+    }
+
+    public Optional<Ticket> getTicketById(UUID id) {
+        return ticketRepository.findById(id);
     }
 }

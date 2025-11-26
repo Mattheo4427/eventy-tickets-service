@@ -3,6 +3,7 @@ package com.polytech.tickets_service.controller;
 import com.polytech.tickets_service.dto.TicketRequestDto;
 import com.polytech.tickets_service.dto.TicketResponseDto;
 import com.polytech.tickets_service.model.Ticket;
+import com.polytech.tickets_service.model.TicketType;
 import com.polytech.tickets_service.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -56,9 +58,19 @@ public class TicketController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<Ticket>> getTicketById(@PathVariable UUID id) {
+        return ResponseEntity.ok(ticketService.getTicketById(id));
+    }
+
     @GetMapping("/admin/all")
     public ResponseEntity<List<TicketResponseDto>> getAllTickets() {
         // TODO: Ajouter @PreAuthorize("hasRole('ADMIN')") quand la sécurité sera active sur ce service
         return ResponseEntity.ok(ticketService.getAllTickets());
+    }
+
+    @GetMapping("/types")
+    public ResponseEntity<List<TicketType>> getAllTicketTypes() {
+        return ResponseEntity.ok(ticketService.getTicketTypes());
     }
 }
