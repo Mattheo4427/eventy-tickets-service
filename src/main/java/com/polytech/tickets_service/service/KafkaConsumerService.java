@@ -25,11 +25,14 @@ public class KafkaConsumerService {
 
         ticketRepository.findById(event.getTicketId()).ifPresentOrElse(
                 ticket -> {
-                    ticket.setStatus(TicketStatus.SOLD);
-                    ticketRepository.save(ticket);
-                    log.info("Ticket {} status updated to SOLD", ticket.getId());
+                    // Idempotence : Si déjà vendu, on ne fait rien (évite les erreurs de lock inutiles)
+                    if (ticket.getStatus() != TicketStatus.SOLD) {
+                        ticket.setStatus(TicketStatus.SOLD);
+                        ticketRepository.save(ticket);
+                        log.info("Ticket {} passé à SOLD via Kafka", ticket.getId());
+                    }
                 },
-                () -> log.error("Ticket not found for ID: {}", event.getTicketId())
+                () -> log.warn("Kafka: Ticket introuvable {}", event.getTicketId()) // Warn au lieu d'Error pour éviter le spam si suppression
         );
     }
 }
