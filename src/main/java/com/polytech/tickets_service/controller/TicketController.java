@@ -39,6 +39,16 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTicket);
     }
 
+    @GetMapping("/vendeur/{id}")
+    public ResponseEntity<List<Ticket>> getTicketsByVendor(@PathVariable UUID id) {
+        if (id != null) {
+            return ResponseEntity.ok(ticketService.getTicketsByVendor(id));
+        }
+        // Si pas de filtre, comportement par défaut (peut-être tout ou rien selon votre règle métier)
+        // Pour l'instant on peut renvoyer une liste vide ou tout (attention à la perf)
+        return ResponseEntity.ok(List.of());
+    }
+
     /**
      * Récupérer tous les tickets disponibles pour un événement donné.
      * Public ou Authentifié.
