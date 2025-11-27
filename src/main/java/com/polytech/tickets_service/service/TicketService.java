@@ -127,4 +127,10 @@ public class TicketService {
     public Optional<Ticket> getTicketById(UUID id) {
         return ticketRepository.findById(id);
     }
+
+    public List<Ticket> getTicketsByVendor(UUID vendorId) {
+        return ticketRepository.findByVendorId(vendorId);
+    }
+
+
 }
