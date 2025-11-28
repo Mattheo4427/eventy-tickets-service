@@ -1,6 +1,9 @@
 package com.polytech.tickets_service.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.polytech.tickets_service.event.TicketSoldEvent;
+import com.polytech.tickets_service.event.TransactionRefundedEvent;
 import com.polytech.tickets_service.model.Ticket;
 import com.polytech.tickets_service.model.enums.TicketStatus;
 import com.polytech.tickets_service.repository.TicketRepository;
@@ -17,10 +20,13 @@ public class KafkaConsumerService {
 
     private static final Logger log = LoggerFactory.getLogger(KafkaConsumerService.class);
     private final TicketRepository ticketRepository;
+    private final ObjectMapper objectMapper; // Injection de Jackson
+
 
     @KafkaListener(topics = "ticket-sold", groupId = "tickets-service-group")
     @Transactional
-    public void handleTicketSold(TicketSoldEvent event) {
+    public void handleTicketSold(String message) throws JsonProcessingException {
+        TicketSoldEvent event = objectMapper.readValue(message, TicketSoldEvent.class);
         log.info("Received TicketSoldEvent for ticket: {}", event.getTicketId());
 
         ticketRepository.findById(event.getTicketId()).ifPresentOrElse(
@@ -33,6 +39,23 @@ public class KafkaConsumerService {
                     }
                 },
                 () -> log.warn("Kafka: Ticket introuvable {}", event.getTicketId()) // Warn au lieu d'Error pour éviter le spam si suppression
+        );
+    }
+
+    @KafkaListener(topics = "transaction-refunded", groupId = "tickets-service-group")
+    @Transactional
+    public void handleTransactionRefunded(String message) throws JsonProcessingException {
+        TransactionRefundedEvent event = objectMapper.readValue(message, TransactionRefundedEvent.class);
+        log.info("Traitement remboursement pour ticket : {}", event.getTicketId());
+
+        ticketRepository.findById(event.getTicketId()).ifPresentOrElse(
+                ticket -> {
+                    // RÈGLE MÉTIER : Le ticket passe en CANCELED (Annulé définitivement)
+                    ticket.setStatus(TicketStatus.CANCELED);
+                    ticketRepository.save(ticket);
+                    log.info("Ticket {} passé au statut CANCELED suite au remboursement.", ticket.getId());
+                },
+                () -> log.error("Ticket introuvable pour remboursement : {}", event.getTicketId())
         );
     }
 }
