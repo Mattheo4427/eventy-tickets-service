@@ -7,6 +7,7 @@ import com.polytech.tickets_service.model.TicketType;
 import com.polytech.tickets_service.model.enums.TicketStatus;
 import com.polytech.tickets_service.repository.TicketRepository;
 import com.polytech.tickets_service.repository.TicketTypeRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +87,39 @@ public class TicketService {
 
         ticket.setStatus(TicketStatus.SOLD);
         ticketRepository.save(ticket);
+    }
+
+    /**
+     * Tente de réserver un ticket pour un acheteur.
+     * Lance une exception si le ticket n'est pas AVAILABLE.
+     */
+    @Transactional
+    public void reserveTicket(UUID ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket introuvable"));
+
+        if (ticket.getStatus() != TicketStatus.AVAILABLE) {
+            throw new IllegalStateException("Ce ticket n'est plus disponible (Statut: " + ticket.getStatus() + ")");
+        }
+
+        ticket.setStatus(TicketStatus.RESERVED);
+        ticketRepository.save(ticket);
+    }
+
+    /**
+     * Annule une réservation (remet en vente).
+     * Appelé si le paiement échoue ou est annulé.
+     */
+    @Transactional
+    public void releaseTicket(UUID ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket introuvable"));
+
+        // On ne libère que si c'était RÉSERVÉ (pour ne pas remettre en vente un ticket VENDU par erreur)
+        if (ticket.getStatus() == TicketStatus.RESERVED) {
+            ticket.setStatus(TicketStatus.AVAILABLE);
+            ticketRepository.save(ticket);
+        }
     }
 
     public List<Ticket> getTicketsByEvent(UUID eventId) {

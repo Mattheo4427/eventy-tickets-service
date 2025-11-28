@@ -83,4 +83,18 @@ public class TicketController {
     public ResponseEntity<List<TicketType>> getAllTicketTypes() {
         return ResponseEntity.ok(ticketService.getTicketTypes());
     }
+
+    // POST /tickets/{id}/reserve
+    @PostMapping("/{id}/reserve")
+    public ResponseEntity<Void> reserveTicket(@PathVariable UUID id) {
+        ticketService.reserveTicket(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // POST /tickets/{id}/release
+    @PostMapping("/{id}/release")
+    public ResponseEntity<Void> releaseTicket(@PathVariable UUID id) {
+        ticketService.releaseTicket(id);
+        return ResponseEntity.ok().build();
+    }
 }
