@@ -97,4 +97,10 @@ public class TicketController {
         ticketService.releaseTicket(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/admin/{id}/cancel")
+    public ResponseEntity<Void> cancelTicket(@PathVariable UUID id) {
+        ticketService.cancelTicket(id);
+        return ResponseEntity.ok().build();
+    }
 }

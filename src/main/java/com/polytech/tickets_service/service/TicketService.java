@@ -122,6 +122,14 @@ public class TicketService {
         }
     }
 
+    @Transactional
+    public void cancelTicket(UUID ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket introuvable"));
+        ticket.setStatus(TicketStatus.CANCELED);
+        ticketRepository.save(ticket);
+    }
+
     public List<Ticket> getTicketsByEvent(UUID eventId) {
         return ticketRepository.findByEventId(eventId);
     }
